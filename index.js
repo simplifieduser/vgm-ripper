@@ -98,14 +98,15 @@ function addWorker() {
 
   const worker = new Worker("./worker.js")
   worker.postMessage(songs[currentSong])
-
-  currentSong++
-  spinner3.text = "Downloading songs (" + currentSong + "/" + songs.length + ")"
-
   worker.on("message", () => {
+
+    currentSong++
+    spinner3.text = "Downloading songs (" + currentSong + "/" + songs.length + ")"
+
     if (currentSong < songs.length) {
       emitter.emit("addWorker")
     }
+
   })
 
 }
