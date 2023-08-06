@@ -8,5 +8,6 @@ parentPort.on("message", async (song) => {
   await fs.writeFile("./songs/" + song.title + ".mp3", blob.data)
 
   parentPort.postMessage("done")
+  process.exit(0)
 
 })
