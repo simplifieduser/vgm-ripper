@@ -3,8 +3,8 @@
 import ora from "ora";
 import prompts from "prompts";
 import puppeteer from "puppeteer";
-import axios from "axios";
-import fs from "fs/promises"
+import { Worker } from "worker_threads"
+import EventEmitter from "events";
 
 // argument parsing
 let albumUrl = process.argv[2]
@@ -72,23 +72,45 @@ for (const row of songRowElements) {
 
 spinner2.succeed("Retrieved " + songs.length + " songs from album")
 
-// download files
+// start worker
 
 const spinner3 = ora().start("Downloading songs")
 
 let index = 0
+let currentWorkers = 0
+const maxWorkers = 4
+const emitter = new EventEmitter
 
 for (const song of songs) {
-  
-  index++
-  spinner3.text = "Downloading songs (" + index + "/" + songs.length + ")"
 
-  const blob = await axios.get(song.src, { responseType: "arraybuffer" })
-  await fs.writeFile("./songs/" + song.title + ".mp3", blob.data)
+  emitter.emit("check")
+
+  currentWorkers++
+  const worker = new Worker("./worker.js")
+  worker.postMessage(song)
+  worker.on("message", () => {
+    currentWorkers--
+    emitter.emit("check")
+    index++
+  })
+
+  await new Promise((resolve) => {
+    const callback = () => {
+      if (currentWorkers < maxWorkers) {
+        emitter.removeListener("check", callback)
+        resolve()
+      }
+    }
+    emitter.on("check", callback)
+  })
+
+  spinner3.text = "Downloading songs (" + index + "/" + songs.length + ")"
 
 }
 
 spinner3.succeed("Downloaded " + songs.length + " songs")
-await browser.close()
 
+// exit application
+
+await browser.close()
 process.exit(0)
