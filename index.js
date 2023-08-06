@@ -76,37 +76,44 @@ spinner2.succeed("Retrieved " + songs.length + " songs from album")
 
 const spinner3 = ora().start("Downloading songs")
 
-let index = 0
-let currentWorkers = 0
+let currentSong = 0
+
 const maxWorkers = 4
 const emitter = new EventEmitter
 
-for (const song of songs) {
+function addWorker() {
 
-  emitter.emit("check")
-
-  currentWorkers++
   const worker = new Worker("./worker.js")
-  worker.postMessage(song)
-  worker.on("message", () => {
-    currentWorkers--
-    emitter.emit("check")
-    index++
-  })
+  worker.postMessage(songs[currentSong])
 
-  await new Promise((resolve) => {
-    const callback = () => {
-      if (currentWorkers < maxWorkers) {
-        emitter.removeListener("check", callback)
-        resolve()
-      }
-    }
-    emitter.on("check", callback)
-  })
-
+  currentSong++
   spinner3.text = "Downloading songs (" + index + "/" + songs.length + ")"
 
+  worker.on("message", () => {
+    if (currentSong < songs.length) {
+      emitter.emit("addWorker")
+    }
+    else {
+
+      
+    }
+  })
+
 }
+
+emitter.on("addWorker", addWorker())
+
+for (let i = 0; i < maxWorkers; i++) {
+  emitter.emit("addWorker")
+}
+
+await new Promise((resolve) => {
+  emitter.on("addWorker", () => {
+    if (currentSong === songs.length) {
+      resolve()
+    }
+  })
+})
 
 spinner3.succeed("Downloaded " + songs.length + " songs")
 
