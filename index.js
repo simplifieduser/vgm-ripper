@@ -10,29 +10,29 @@ import { mkdir } from "fs/promises";
 // argument parsing
 
 let albumUrl = process.argv[2]
-let maxWorkers = process.argv[3]
+let maxWorkers = parseInt(process.argv[3])
 
 if (albumUrl === undefined || albumUrl.trim().length < 1) {
 
   albumUrl = (await prompts({
     name: "albumUrl",
     type: "text",
-    message: "Please enter the url to the album."
+    message: "Please enter the url to the album:"
   })).albumUrl
 
 }
 
-if (albumUrl === undefined || albumUrl.trim().length < 1) {
+if (!Number.isInteger(maxWorkers)) {
 
   maxWorkers = (await prompts({
     name: "maxWorkers",
     type: "number",
-    message: "Please enter the number of workers for downloading."
+    message: "Please enter the number of workers for downloading:"
   })).maxWorkers
 
 }
 
-await mkdir("./songs")
+await mkdir("./songs", { recursive: true })
 
 // start browser
 
