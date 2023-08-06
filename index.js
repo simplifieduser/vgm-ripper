@@ -100,7 +100,7 @@ function addWorker() {
   worker.postMessage(songs[currentSong])
 
   currentSong++
-  spinner3.text = "Downloading songs (" + index + "/" + songs.length + ")"
+  spinner3.text = "Downloading songs (" + currentSong + "/" + songs.length + ")"
 
   worker.on("message", () => {
     if (currentSong < songs.length) {
@@ -110,10 +110,10 @@ function addWorker() {
 
 }
 
-emitter.on("addWorker", addWorker())
+emitter.on("addWorker", addWorker)
 
 for (let i = 0; i < maxWorkers; i++) {
-  emitter.emit("addWorker")
+  addWorker()
 }
 
 await new Promise((resolve) => {
