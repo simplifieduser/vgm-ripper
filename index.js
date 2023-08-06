@@ -3,11 +3,14 @@
 import ora from "ora";
 import prompts from "prompts";
 import puppeteer from "puppeteer";
-import { Worker } from "worker_threads"
 import EventEmitter from "events";
+import { Worker } from "worker_threads"
+import { mkdir } from "fs/promises";
 
 // argument parsing
+
 let albumUrl = process.argv[2]
+let maxWorkers = process.argv[3]
 
 if (albumUrl === undefined || albumUrl.trim().length < 1) {
 
@@ -18,6 +21,18 @@ if (albumUrl === undefined || albumUrl.trim().length < 1) {
   })).albumUrl
 
 }
+
+if (albumUrl === undefined || albumUrl.trim().length < 1) {
+
+  maxWorkers = (await prompts({
+    name: "maxWorkers",
+    type: "number",
+    message: "Please enter the number of workers for downloading."
+  })).maxWorkers
+
+}
+
+await mkdir("./songs")
 
 // start browser
 
@@ -77,8 +92,6 @@ spinner2.succeed("Retrieved " + songs.length + " songs from album")
 const spinner3 = ora().start("Downloading songs")
 
 let currentSong = 0
-
-const maxWorkers = 4
 const emitter = new EventEmitter
 
 function addWorker() {
@@ -92,10 +105,6 @@ function addWorker() {
   worker.on("message", () => {
     if (currentSong < songs.length) {
       emitter.emit("addWorker")
-    }
-    else {
-
-      
     }
   })
 
