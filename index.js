@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import ora from "ora";
 import prompts from "prompts";
 import puppeteer from "puppeteer";
@@ -70,7 +72,7 @@ for (const row of songRowElements) {
 
 spinner2.succeed("Retrieved " + songs.length + " songs from album")
 
-// open workers
+// download files
 
 const spinner3 = ora().start("Downloading songs")
 
